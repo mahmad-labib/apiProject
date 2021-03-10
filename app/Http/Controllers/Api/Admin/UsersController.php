@@ -60,7 +60,17 @@ class UsersController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $user = User::where('id', $id)->first();
+            if (!$user) {
+                return $this->returnError('404', 'user not found');
+            }
+            $user->roles;
+            $user->sections;
+            return $this->returnData('user', $user);
+        } catch (\Exception $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -71,19 +81,7 @@ class UsersController extends Controller
      */
     public function edit($id)
     {
-        try {
-            $all_roles = Role::all();
-            $sections = Section::all();
-            $user = User::where('id', $id)->first();
-            $user->roles;
-            $user->sections;
-            $data['user'] = $user->toArray();
-            $data['roles'] = $all_roles;
-            $data['sections'] = $sections;
-            return $this->returnData('data', $data);
-        } catch (\Exception $ex) {
-            return $this->returnError($ex->getCode(), $ex->getMessage());
-        }
+        //
     }
 
     /**

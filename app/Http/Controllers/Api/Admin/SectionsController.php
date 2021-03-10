@@ -70,7 +70,15 @@ class SectionsController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $section = Section::find($id);
+            if (!$section) {
+                return $this->returnError('404', 'data not found');
+            }
+            return $this->returnData('section', $section);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -81,15 +89,7 @@ class SectionsController extends Controller
      */
     public function edit($id)
     {
-        try {
-            $section = Section::find($id);
-            if (!$section) {
-                return $this->returnError('404', 'data not found');
-            }
-            return $this->returnData('section', $section);
-        } catch (\Throwable $ex) {
-            return $this->returnError($ex->getCode(), $ex->getMessage());
-        }
+        //
     }
     /**
      * Update the specified resource in storage.

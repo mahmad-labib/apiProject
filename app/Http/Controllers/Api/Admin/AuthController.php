@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\GeneralTrait;
-use App\Models\user;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +40,7 @@ class AuthController extends Controller
                 return $this->returnError('E001', 'بيانات الدخول غير صحيحة');
 
             $user = Auth::guard('user-api')->user();
+            // $user->roles->name;
             $user->api_token = $token;
             //return token
             return $this->returnData('user', $user);

@@ -18,11 +18,11 @@ trait GeneralTrait
         ]);
     }
 
-    public function returnSuccessMessage($msg = "", $errNum = "5000")
+    public function returnSuccessMessage($msg = "", $successNum = "200")
     {
         return [
             'status' => true,
-            'errNum' => $errNum,
+            'successNum' => $successNum,
             'msg' => $msg
         ];
     }
@@ -31,7 +31,7 @@ trait GeneralTrait
     {
         return response()->json([
             'status' => true,
-            'errNum' => "5000",
+            'successNum' => "200",
             'msg' => $msg,
             $key => $value
         ]);

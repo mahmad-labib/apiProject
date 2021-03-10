@@ -69,7 +69,15 @@ class RolesController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $role = Role::where('id', $id)->first();
+            if (!$role) {
+                return $this->returnError('404', 'role not found');
+            }
+            return $this->returnData('role', $role);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -80,11 +88,7 @@ class RolesController extends Controller
      */
     public function edit($id)
     {
-        $permissions = Permission::all()->toArray();
-        $role = Role::where('id', $id)->first()->toArray();
-        $data['role'] = $role;
-        $data['permissions'] = $permissions;
-        return $this->returnData('data', $data);
+        //
     }
 
     /**
@@ -104,10 +108,13 @@ class RolesController extends Controller
             $name = $request->name;
             $perm = $request->permissions;
             $role = Role::where('id', $id)->first();
+            if (!$role) {
+                return $this->returnError('404', 'role dont exist');
+            }
             $role->update(['name' => $name]);
-            $role->permissions()->sync(json_decode($perm));
+            $role->permissions()->sync($perm);
             return $this->returnSuccessMessage(msg: 'role updated');
-        } catch (\Exception $ex) {
+        } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }
     }
@@ -127,7 +134,7 @@ class RolesController extends Controller
             }
             $role->permissions()->detach();
             $role->delete();
-            return $this->returnSuccessMessage(msg:'role deleted successfully');
+            return $this->returnSuccessMessage(msg: 'role deleted successfully');
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }
