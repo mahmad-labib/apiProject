@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Traits\GeneralTrait;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+
+use function PHPSTORM_META\map;
 
 class UserController extends Controller
 {
     use GeneralTrait;
+    // use HasPermissionsTrait;
     /**
      * Display a listing of the resource.
      *
@@ -19,7 +24,7 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user();
-            $user->roles;
+            dd($user->can('publisher'));
             return $this->returnData('user', $user);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
