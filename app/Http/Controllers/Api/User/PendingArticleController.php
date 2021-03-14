@@ -20,7 +20,7 @@ class PendingArticleController extends Controller
     public function index()
     {
         try {
-            $articles = Article::all();
+            $articles = PendingArticles::all();
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
@@ -83,7 +83,6 @@ class PendingArticleController extends Controller
             $pendingArticle = PendingArticles::find($id);
             $article = new Article;
             $this->validate($request, [
-                'state' => 'required',
                 'state' => 'required',
             ]);
             if ($request->state === 'approved') {

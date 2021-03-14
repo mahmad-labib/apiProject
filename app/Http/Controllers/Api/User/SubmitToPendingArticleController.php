@@ -7,6 +7,7 @@ use App\Models\PendingArticles;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
+use App\Models\Section;
 
 class SubmitToPendingArticleController extends Controller
 {
@@ -40,21 +41,28 @@ class SubmitToPendingArticleController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = auth()->user();
-            // $request
-            // dd($request);
             $this->validate($request, [
                 'title' => 'required',
                 'content' => 'required',
                 'section_id' => 'required',
             ]);
+            $user = auth()->user(); 
+            $requestSection = Section::find($request->section_id);
+            $userSections = $user->sections;
             $article = new PendingArticles;
+            if (empty($requestSection) || empty($userSections)) {
+                return $this->returnError('404', 'somthing went wrong');
+            }
             $checkName = Article::where('title', $request->title);
             if (!$checkName) {
                 return $this->returnError('409', 'this title does exist');
             }
-            $article->create($request->all() + ['creator_id' => $user->id]);
-            return $this->returnSuccessMessage('article posted and waiting for approve');
+            $checkSection = $this->checkChildren($userSections, $requestSection);
+            if ($checkSection) {
+                $article->create($request->all() + ['creator_id' => $user->id]);
+                return $this->returnSuccessMessage('article posted and waiting for approve');
+            }
+            return $this->returnError('403', 'forbidden');
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }

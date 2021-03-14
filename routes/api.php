@@ -36,7 +36,7 @@ Route::group(['prefix' => 'admin'], function () {
     Route::post('logout', [AuthController::class, 'logout']);
 });
 
-Route::group(['middleware' => ['checkUserToken', 'role:admin'], 'prefix' => 'admin'], function () {
+Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' => 'admin'], function () {
     Route::resource('roles', RolesController::class);
     Route::resource('users', UsersController::class);
     Route::resource('sections', SectionsController::class);
@@ -49,11 +49,13 @@ Route::group(['prefix' => 'dashboard'], function () {
     Route::post('user/register', [RegisterController::class, 'register']);
 });
 
+Route::post('signup', [UserController::class, 'signUp']);
+
 Route::group(['prefix' => 'dashboard', 'middleware' => 'checkUserToken'], function () {
     Route::resource('user', UserController::class);
-    Route::resource('articles', ArticleController::class)->middleware('role:publisher');
-    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('role:writer');
-    Route::resource('pendingArticle', PendingArticleController::class)->middleware('role:approver');
+    Route::resource('articles', ArticleController::class)->middleware('permission:publisher,admin');
+    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:writer,admin');
+    Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve,admin');
 });
 
 

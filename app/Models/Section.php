@@ -24,6 +24,20 @@ class Section extends Model
         return $this->belongsTo(Section::class, 'parent_id');
     }
 
+    public function getParents()
+    {
+        $parents = collect([]);
+
+        $parent = $this->parent;
+
+        while (!is_null($parent)) {
+            $parents->push($parent);
+            $parent = $parent->parent;
+        }
+
+        return $parents;
+    }
+
     //each category might have multiple children
     public function children()
     {

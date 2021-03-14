@@ -41,23 +41,28 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = auth()->user();
-            $article = new Article;
             $this->validate($request, [
                 'title' => 'required',
                 'content' => 'required',
-                'section' => 'required',
+                'section_id' => 'required',
             ]);
-            $chkSection = Section::find($request->section);
-            if (!$chkSection) {
-                return $this->returnError('404', `this section don't exists`);
+            $user = auth()->user();
+            $article = new Article;
+            $requestSection = Section::find($request->section_id);
+            $userSections = $user->sections;
+            if (empty($requestSection) || empty($userSections)) {
+                return $this->returnError('404', 'somthing went wrong');
             }
-            $article->title = $request->title;
-            $article->content = $request->content;
-            $article->save();
-            $article->creator()->sync($user->id);
-            $article->section()->sync($request->section);
-            return $this->returnSuccessMessage('articel posted');
+            $checkSection = $this->checkChildren($userSections, $requestSection);
+            if ($checkSection) {
+                $article->title = $request->title;
+                $article->content = $request->content;
+                $article->save();
+                $article->creator()->sync($user->id);
+                $article->section()->sync($request->section_id);
+                return $this->returnSuccessMessage('articel posted');
+            }
+            return $this->returnError('403', 'forbidden');
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }

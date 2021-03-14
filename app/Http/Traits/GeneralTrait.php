@@ -4,6 +4,19 @@ namespace App\Http\Traits;
 
 trait GeneralTrait
 {
+
+    public function checkChildren($data, $requestData)
+    {
+        $children = [];
+        foreach ($data as $section) {
+            $sectionChildren = $section->children;
+            foreach ($sectionChildren as $child) {
+                array_push($children, $child->name);
+            }
+        }
+        return in_array($requestData->name, $children);
+    }
+
     public function getCurrentLang()
     {
         return app()->getlocale();
@@ -36,7 +49,7 @@ trait GeneralTrait
             $key => $value
         ]);
     }
-    
+
     public function returnValidationError($validator, $code = "E001")
     {
         return $this->returnError($code, $validator->errors()->first());

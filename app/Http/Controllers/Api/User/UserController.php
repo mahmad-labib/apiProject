@@ -24,7 +24,8 @@ class UserController extends Controller
     {
         try {
             $user = auth()->user();
-            dd($user->can('publisher'));
+            $user->roles;
+            $user->sections;
             return $this->returnData('user', $user);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
@@ -47,8 +48,10 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function signUp(Request $request)
     {
+        dd(auth()->user());
+       
         try {
             $this->validate($request, [
                 'name' => 'required',
@@ -109,7 +112,18 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $authUser = auth()->user();
+            $input = $request->all();
+            $user = User::find($id);
+            if ($authUser->id == (int)$id) {
+                $user->update($input);
+                return $this->returnSuccessMessage('user updated');
+            }
+            return $this->returnError('404', 'error');
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
