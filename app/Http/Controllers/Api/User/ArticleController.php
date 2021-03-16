@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
 use App\Models\Section;
+use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Contracts\Providers\Auth;
 
 class ArticleController extends Controller
@@ -45,6 +46,7 @@ class ArticleController extends Controller
                 'title' => 'required',
                 'content' => 'required',
                 'section_id' => 'required',
+                'images' => 'required'
             ]);
             $user = auth()->user();
             $article = new Article;
@@ -55,8 +57,17 @@ class ArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
+                $content = $request->content;
+                $image = $request->file('images');
+                foreach ($image as $image) {
+                    $name = $image->getClientOriginalName();
+                    $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
+                    $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
+                    $url = Storage::url($path);
+                    $content = str_replace($name, $_SERVER['SERVER_NAME'] . $url, $content);
+                }
                 $article->title = $request->title;
-                $article->content = $request->content;
+                $article->content = htmlentities($content);
                 $article->save();
                 $article->creator()->sync($user->id);
                 $article->section()->sync($request->section_id);

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
 use App\Models\Section;
+use Illuminate\Support\Facades\Storage;
 
 class SubmitToPendingArticleController extends Controller
 {
@@ -45,6 +46,7 @@ class SubmitToPendingArticleController extends Controller
                 'title' => 'required',
                 'content' => 'required',
                 'section_id' => 'required',
+                'images' => 'required'
             ]);
             $user = auth()->user(); 
             $requestSection = Section::find($request->section_id);
@@ -59,7 +61,20 @@ class SubmitToPendingArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
-                $article->create($request->all() + ['creator_id' => $user->id]);
+                $content = $request->content;
+                $image = $request->file('images');
+                foreach ($image as $image) {
+                    $name = $image->getClientOriginalName();
+                    $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
+                    $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
+                    $url = Storage::url($path);
+                    $content = str_replace($name, $_SERVER['SERVER_NAME'] . $url, $content);
+                }
+                $article->content = base64_encode($content);;
+                $article->title = $request->title;
+                $article->section_id = $request->section_id;
+                $article->creator_id = $user->id;
+                $article->save();
                 return $this->returnSuccessMessage('article posted and waiting for approve');
             }
             return $this->returnError('403', 'forbidden');

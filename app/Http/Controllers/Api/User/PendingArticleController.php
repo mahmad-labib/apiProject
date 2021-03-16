@@ -21,6 +21,11 @@ class PendingArticleController extends Controller
     {
         try {
             $articles = PendingArticles::all();
+            foreach ($articles as $content) {
+                $content->content = base64_decode($content->content);
+            }
+            // dd($articles);
+            // dd($this->returnData('articles', $articles));
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
