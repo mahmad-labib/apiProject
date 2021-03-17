@@ -7,7 +7,6 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\PendingArticles;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
 
 class PendingArticleController extends Controller
 {
@@ -21,8 +20,8 @@ class PendingArticleController extends Controller
     {
         try {
             $articles = PendingArticles::all();
-            foreach ($articles as $content) {
-                $content->content = base64_decode($content->content);
+            foreach ($articles as $article) {
+                $article->content = html_entity_decode($article->content);
             }
             // dd($articles);
             // dd($this->returnData('articles', $articles));

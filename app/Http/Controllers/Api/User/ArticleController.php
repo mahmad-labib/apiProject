@@ -44,7 +44,7 @@ class ArticleController extends Controller
         try {
             $this->validate($request, [
                 'title' => 'required',
-                'content' => 'required',
+                'content' => 'mimes:txt|required',
                 'section_id' => 'required',
                 'images' => 'required'
             ]);
@@ -57,14 +57,14 @@ class ArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
-                $content = $request->content;
+                $content = file_get_contents($request->content);
                 $image = $request->file('images');
                 foreach ($image as $image) {
                     $name = $image->getClientOriginalName();
                     $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
                     $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
                     $url = Storage::url($path);
-                    $content = str_replace($name, $_SERVER['SERVER_NAME'] . $url, $content);
+                    $content = str_replace($name,'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
                 }
                 $article->title = $request->title;
                 $article->content = htmlentities($content);
@@ -87,7 +87,17 @@ class ArticleController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $data = Article::find($id);
+            $content = html_entity_decode($data->content);
+            $data->content = $content;
+            if (!empty($data)) {
+                return $this->returnData('article', $data);
+            }
+            return $this->returnError('404', 'not found');
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**

@@ -22,6 +22,10 @@
     </head>
     <body class="antialiased">
         <div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center sm:pt-0">
+            <div>
+                {!! $data->content !!}
+            </div>
+            {{-- <img src="http://apiproject.stg/storage/uploads/avatar/7/1615979243.$2y$10$v8M01mWh6ICK7QKpUFkG/.KAqMbH//r6Qon58juO/wkKTFzvSXuja.jpg" height="400" width="500" alt=""> --}}
             @if (Route::has('login'))
                 <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
                     @auth
