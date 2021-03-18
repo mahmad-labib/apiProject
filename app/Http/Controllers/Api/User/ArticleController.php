@@ -64,7 +64,7 @@ class ArticleController extends Controller
                     $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
                     $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
                     $url = Storage::url($path);
-                    $content = str_replace($name,'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
+                    $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
                 }
                 $article->title = $request->title;
                 $article->content = htmlentities($content);

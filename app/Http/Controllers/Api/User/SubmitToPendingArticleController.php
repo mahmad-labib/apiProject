@@ -7,6 +7,7 @@ use App\Models\PendingArticles;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
+use App\Models\Image;
 use App\Models\Section;
 use Illuminate\Support\Facades\Storage;
 
@@ -44,11 +45,11 @@ class SubmitToPendingArticleController extends Controller
         try {
             $this->validate($request, [
                 'title' => 'required',
-                'content' => 'required',
+                'content' => 'mimes:txt|required',
                 'section_id' => 'required',
                 'images' => 'required'
             ]);
-            $user = auth()->user(); 
+            $user = auth()->user();
             $requestSection = Section::find($request->section_id);
             $userSections = $user->sections;
             $article = new PendingArticles;
@@ -61,20 +62,28 @@ class SubmitToPendingArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
-                $content = $request->content;
-                $image = $request->file('images');
-                foreach ($image as $image) {
+                $content = file_get_contents($request->content);
+                $images = $request->file('images');
+                $imagesPath = [];
+                foreach ($images as $image) {
                     $name = $image->getClientOriginalName();
                     $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
                     $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
+                    $image = new Image;
+                    $image->path = $path;
+                    array_push($imagesPath, $image);
                     $url = Storage::url($path);
-                    $content = str_replace($name, $_SERVER['SERVER_NAME'] . $url, $content);
+                    $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
                 }
-                $article->content = base64_encode($content);;
+                $article->content = htmlentities($content);
                 $article->title = $request->title;
                 $article->section_id = $request->section_id;
                 $article->creator_id = $user->id;
                 $article->save();
+                foreach ($imagesPath as $image) {
+                    $image->save();
+                    $image->pending_article()->attach($article->id);
+                }
                 return $this->returnSuccessMessage('article posted and waiting for approve');
             }
             return $this->returnError('403', 'forbidden');

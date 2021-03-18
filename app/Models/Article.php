@@ -22,4 +22,11 @@ class Article extends Model
 
         return $this->belongsToMany(Section::class, 'sections_articles');
     }
+
+    public function images()
+    {
+
+        return $this->belongsToMany(Image::class, 'articles_images');
+    }
+
 }

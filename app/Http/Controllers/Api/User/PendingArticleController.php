@@ -23,7 +23,7 @@ class PendingArticleController extends Controller
             foreach ($articles as $article) {
                 $article->content = html_entity_decode($article->content);
             }
-            // dd($articles);
+            dd($articles);
             // dd($this->returnData('articles', $articles));
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
@@ -95,6 +95,9 @@ class PendingArticleController extends Controller
                 $article->save();
                 $article->creator()->attach($pendingArticle->creator_id);
                 $article->section()->attach($pendingArticle->section_id);
+                $images = $pendingArticle->images;
+                $article->images()->sync($images);
+                $pendingArticle->images()->detach;
                 $pendingArticle->delete();
                 return $this->returnSuccessMessage('article published');
             }
