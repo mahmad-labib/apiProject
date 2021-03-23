@@ -2,19 +2,26 @@
 
 namespace App\Http\Traits;
 
+use App\Models\Image;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+
 trait GeneralTrait
 {
 
-    public function checkChildren($data, $requestData)
+    public function checkChildren($userSections, $requestData)
     {
+        if (empty($userSections) || empty($requestData)) {
+            return $this->returnError('404', 'somthing went wrong');
+        }
         $children = [];
-        foreach ($data as $section) {
+        foreach ($userSections as $section) {
             $sectionChildren = $section->children;
             foreach ($sectionChildren as $child) {
                 array_push($children, $child->name);
             }
         }
-        return in_array($requestData->name, $children);
+        return  in_array($requestData->name, $children);
     }
 
     public function getCurrentLang()
@@ -48,6 +55,55 @@ trait GeneralTrait
             'msg' => $msg,
             $key => $value
         ]);
+    }
+
+    public function deleteImages($images)
+    {
+        foreach ($images as $image) {
+            $image_path =  public_path() . '/storage/' . $image->path;
+            if (File::exists($image_path))
+                unlink($image_path);
+                $image->delete();
+        }
+    }
+
+    public function replaceArticleImages($oldContent, $request)
+    {
+        $content = file_get_contents($request->content);
+        $data = $this->createArticleWithImages($content, $request->images);
+        $oldImages = $oldContent->images;
+        foreach ($oldImages as $image) {
+            $checkReplacedImg = strpos($data->content, $image->path);
+            
+            if (!$checkReplacedImg) {
+                $image_path =  public_path() . '/storage/' . $image->path;
+                if (File::exists($image_path)){
+                    unlink($image_path);
+                    $oldContent->images()->detach($image->id);
+                    $image->delete();
+                } 
+            }
+        }
+        return $data;
+    }
+
+    public function createArticleWithImages($content, $images)
+    {
+        $data =  new class{};
+        $imagesPath = [];
+        foreach ($images as $image) {
+            $name = $image->getClientOriginalName();
+            $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
+            $image = new Image;
+            $image->path = $path;
+            array_push($imagesPath, $image);
+            $url = Storage::url($path);
+            $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
+        }
+        $data->imagesPath = $imagesPath;
+        $data->content = $content;
+        return $data;
     }
 
     public function returnValidationError($validator, $code = "E001")

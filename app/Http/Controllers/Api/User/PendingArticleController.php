@@ -7,6 +7,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\PendingArticles;
+use Illuminate\Support\Facades\File;
 
 class PendingArticleController extends Controller
 {
@@ -95,9 +96,9 @@ class PendingArticleController extends Controller
                 $article->save();
                 $article->creator()->attach($pendingArticle->creator_id);
                 $article->section()->attach($pendingArticle->section_id);
-                $images = $pendingArticle->images;
-                $article->images()->sync($images);
-                $pendingArticle->images()->detach;
+                $pendingImages = $pendingArticle->images;
+                $article->images()->sync($pendingImages);
+                $pendingArticle->images()->detach();
                 $pendingArticle->delete();
                 return $this->returnSuccessMessage('article published');
             }
@@ -120,6 +121,13 @@ class PendingArticleController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $pendingArticle = PendingArticles::find($id);
+            $this->deleteImages($pendingArticle->images);
+            $pendingArticle->images()->detach();
+            $pendingArticle->delete();
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 }

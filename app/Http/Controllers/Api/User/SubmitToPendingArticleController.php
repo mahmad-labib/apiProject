@@ -53,34 +53,22 @@ class SubmitToPendingArticleController extends Controller
             $requestSection = Section::find($request->section_id);
             $userSections = $user->sections;
             $article = new PendingArticles;
-            if (empty($requestSection) || empty($userSections)) {
-                return $this->returnError('404', 'somthing went wrong');
-            }
+            $checkSection = $this->checkChildren($userSections, $requestSection);
             $checkName = Article::where('title', $request->title);
             if (!$checkName) {
                 return $this->returnError('409', 'this title does exist');
             }
-            $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
                 $content = file_get_contents($request->content);
                 $images = $request->file('images');
-                $imagesPath = [];
-                foreach ($images as $image) {
-                    $name = $image->getClientOriginalName();
-                    $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
-                    $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
-                    $image = new Image;
-                    $image->path = $path;
-                    array_push($imagesPath, $image);
-                    $url = Storage::url($path);
-                    $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
-                }
-                $article->content = htmlentities($content);
+                $data = $this->createArticleWithImages($content, $images);
+
+                $article->content = htmlentities($data->content);
                 $article->title = $request->title;
                 $article->section_id = $request->section_id;
                 $article->creator_id = $user->id;
                 $article->save();
-                foreach ($imagesPath as $image) {
+                foreach ($data->imagesPath as $image) {
                     $image->save();
                     $image->pending_article()->attach($article->id);
                 }
@@ -100,7 +88,8 @@ class SubmitToPendingArticleController extends Controller
      */
     public function show($id)
     {
-        //
+        $article = PendingArticles::find($id);
+        echo (html_entity_decode($article->content));
     }
 
     /**
@@ -123,7 +112,37 @@ class SubmitToPendingArticleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $this->validate($request, [
+                'title' => 'required',
+                'content' => 'mimes:txt|required',
+                'section_id' => 'required',
+                'images' => 'required'
+            ]);
+            $user = auth()->user();
+            $requestSection = Section::find($request->section_id);
+            $checkSection = $this->checkChildren($user->sections, $requestSection);
+            if ($checkSection) {
+                $article = PendingArticles::find($id);
+
+                $data = $this->replaceArticleImages($article, $request);
+
+                $article->content = htmlentities($data->content);
+                $article->title = $request->title;
+                $article->section_id = $request->section_id;
+                $article->save();
+
+                foreach ($data->imagesPath as $image) {
+                    $image->save();
+                    $image->pending_article()->attach($article->id);
+                }
+
+                return $this->returnSuccessMessage('article posted and waiting for approve');
+            }
+            return $this->returnError('404', 'somthing went wrong');
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -134,6 +153,13 @@ class SubmitToPendingArticleController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $pendingArticle = PendingArticles::find($id);
+            $this->deleteImages($pendingArticle->images);
+            $pendingArticle->images()->detach();
+            $pendingArticle->delete();
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 }
