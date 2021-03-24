@@ -7,8 +7,6 @@ use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
 use App\Models\Section;
-use Illuminate\Support\Facades\Storage;
-use Tymon\JWTAuth\Contracts\Providers\Auth;
 
 class ArticleController extends Controller
 {
@@ -58,19 +56,17 @@ class ArticleController extends Controller
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
                 $content = file_get_contents($request->content);
-                $image = $request->file('images');
-                foreach ($image as $image) {
-                    $name = $image->getClientOriginalName();
-                    $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
-                    $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
-                    $url = Storage::url($path);
-                    $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
-                }
+                $images = $request->file('images');
+                $data = $this->createArticleWithImages($content, $images);
                 $article->title = $request->title;
-                $article->content = htmlentities($content);
+                $article->content = htmlentities($data->content);
                 $article->save();
                 $article->creator()->sync($user->id);
                 $article->section()->sync($request->section_id);
+                foreach ($data->imagesPath as $image) {
+                    $image->save();
+                    $image->article()->attach($article->id);
+                }
                 return $this->returnSuccessMessage('articel posted');
             }
             return $this->returnError('403', 'forbidden');
@@ -120,7 +116,31 @@ class ArticleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $this->validate($request, [
+                'title' => 'required',
+                'content' => 'mimes:txt|required',
+                'section_id' => 'required',
+            ]);
+            $article = Article::find($id);
+            $user = auth()->user();
+            $requestSection = Section::find($request->section_id);
+            $checkSection = $this->checkChildren($user->sections, $requestSection);
+            if ($checkSection) {
+                $data = $this->replaceArticleImages($article, $request);
+                $article->content = htmlentities($data->content);
+                $article->title = $request->content;
+                $article->section()->sync($request->section_id);
+                $article->save();
+                foreach ($data->imagesPath as $image) {
+                    $image->save();
+                    $image->article()->attach($article->id);
+                }
+                return $this->returnSuccessMessage('article updated');
+            }
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -131,6 +151,13 @@ class ArticleController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $article = Article::find($id);
+            $this->deleteImages($article->images);
+            $article->images()->detach();
+            $article->delete();
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 }

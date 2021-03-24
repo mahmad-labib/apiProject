@@ -7,7 +7,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\PendingArticles;
-use Illuminate\Support\Facades\File;
+
 
 class PendingArticleController extends Controller
 {
@@ -61,7 +61,15 @@ class PendingArticleController extends Controller
      */
     public function show($id)
     {
-        //
+        try {
+            $article = Article::find($id);
+            if (!empty($article)) {
+             return $this->returnData('article', $article);
+            }
+            return $this->returnError('404', 'not found');
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -86,11 +94,11 @@ class PendingArticleController extends Controller
     {
         try {
             $pendingArticle = PendingArticles::find($id);
-            $article = new Article;
             $this->validate($request, [
                 'state' => 'required',
             ]);
             if ($request->state === 'approved') {
+                $article = new Article;
                 $article->title = $pendingArticle->title;
                 $article->content = $pendingArticle->content;
                 $article->save();

@@ -7,9 +7,7 @@ use App\Models\PendingArticles;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
-use App\Models\Image;
 use App\Models\Section;
-use Illuminate\Support\Facades\Storage;
 
 class SubmitToPendingArticleController extends Controller
 {
@@ -124,9 +122,7 @@ class SubmitToPendingArticleController extends Controller
             $checkSection = $this->checkChildren($user->sections, $requestSection);
             if ($checkSection) {
                 $article = PendingArticles::find($id);
-
                 $data = $this->replaceArticleImages($article, $request);
-
                 $article->content = htmlentities($data->content);
                 $article->title = $request->title;
                 $article->section_id = $request->section_id;

@@ -9,7 +9,7 @@ class Article extends Model
 {
     protected $table = 'articles';
     protected $fillable = [
-        'title', 'content', 'creator_id', 'section_id', 'state'
+        'title', 'content'
     ];
     public function creator()
     {

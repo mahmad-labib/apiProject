@@ -74,7 +74,6 @@ trait GeneralTrait
         $oldImages = $oldContent->images;
         foreach ($oldImages as $image) {
             $checkReplacedImg = strpos($data->content, $image->path);
-            
             if (!$checkReplacedImg) {
                 $image_path =  public_path() . '/storage/' . $image->path;
                 if (File::exists($image_path)){
