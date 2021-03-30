@@ -24,6 +24,13 @@ trait GeneralTrait
         return  in_array($requestData->name, $children);
     }
 
+    public function checkUser($user, $id){
+        if ($user->id === (int)$id) {
+            return true;
+        }
+        return false;
+    }
+
     public function getCurrentLang()
     {
         return app()->getlocale();

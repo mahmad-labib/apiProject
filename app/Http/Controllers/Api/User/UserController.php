@@ -50,8 +50,6 @@ class UserController extends Controller
      */
     public function signUp(Request $request)
     {
-        dd(auth()->user());
-       
         try {
             $this->validate($request, [
                 'name' => 'required',
@@ -134,6 +132,15 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $checkUser = $this->checkUser(auth()->user(), $id);
+            if ($checkUser) {
+                User::find($id)->delete();
+                return $this->returnSuccessMessage('user deleted');
+            }
+            return $this->returnError('403', 'forbidden');
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 }

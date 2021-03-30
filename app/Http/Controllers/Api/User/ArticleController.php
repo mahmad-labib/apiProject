@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
 use App\Models\Section;
+use GuzzleHttp\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 class ArticleController extends Controller
 {
@@ -54,7 +56,7 @@ class ArticleController extends Controller
                 return $this->returnError('404', 'somthing went wrong');
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
-            if ($checkSection) {
+            if ($checkSection || $user->can('admin')) {
                 $content = file_get_contents($request->content);
                 $images = $request->file('images');
                 $data = $this->createArticleWithImages($content, $images);
@@ -152,10 +154,18 @@ class ArticleController extends Controller
     public function destroy($id)
     {
         try {
+            $user = auth()->user();
             $article = Article::find($id);
-            $this->deleteImages($article->images);
-            $article->images()->detach();
-            $article->delete();
+            $articleCreator = $article->creator;
+            foreach ($articleCreator as $creator) {
+                if ($user->id === $creator->id) {
+                    $this->deleteImages($article->images);
+                    $article->images()->detach();
+                    $article->delete();
+                    return $this->returnSuccessMessage('deleted');
+                }
+            }
+            return $this->returnError('403', 'forbidden');
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }

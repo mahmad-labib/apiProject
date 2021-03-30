@@ -17,10 +17,10 @@ class UsersController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $users = User::all();
+            $users = User::paginate($request->paginate)->except(auth()->user()->id);
             foreach ($users as $user) {
                 $user->roles;
                 $user->sections;
@@ -101,7 +101,7 @@ class UsersController extends Controller
             ]);
 
             $input = $request->all();
-            $role = Role::where('id', $request->role)->first();
+            $role = Role::find($request->role);
             $user = User::find($id);
             if (!$user) {
                 return $this->returnError(errNum: '404', msg: 'user dont exist');
@@ -124,6 +124,7 @@ class UsersController extends Controller
     {
         try {
             $user =  User::where('id', $id)->first();
+            
             if (!$user) {
                 return $this->returnError(errNum: '404', msg: 'user dont exist');
             }

@@ -9,10 +9,8 @@ use App\Http\Controllers\Api\Admin\UsersController;
 use App\Http\Controllers\Api\User\SubmitToPendingArticleController;
 use App\Http\Controllers\Api\User\PendingArticleController;
 use App\Http\Controllers\Api\User\UserController;
-use App\Http\Controllers\Api\User\RegisterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\CategoriesController;
 
 
 /*
@@ -26,14 +24,10 @@ use App\Http\Controllers\Api\CategoriesController;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-    //routes
-});
-
-Route::group(['prefix' => 'admin'], function () {
+Route::group([], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('signup', [UserController::class, 'signUp']);
 });
 
 Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' => 'admin'], function () {
@@ -44,26 +38,9 @@ Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' =
 });
 
 
-
-Route::group(['prefix' => 'dashboard'], function () {
-    Route::post('user/register', [RegisterController::class, 'register']);
-});
-
-Route::post('signup', [UserController::class, 'signUp']);
-
 Route::group(['prefix' => 'dashboard', 'middleware' => 'checkUserToken'], function () {
     Route::resource('user', UserController::class);
     Route::resource('articles', ArticleController::class)->middleware('permission:publisher,admin');
     Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:writer,admin');
     Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve,admin');
 });
-
-
-// Route::group(['prefix' => 'user'], function () {
-//     Route::post('login', [UserAuthController::class, 'login']);
-//     Route::post('logout', [UserAuthController::class, 'logout']);
-// });
-
-// Route::group(['middleware' => ['api', 'checkPassword', 'changeLang', 'CheckUserToken:user-api'], 'namespace' => 'Api'], function () {
-//     Route::get('offers', [CategoriesController::class, 'index']);
-// });

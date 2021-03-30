@@ -64,7 +64,7 @@ class PendingArticleController extends Controller
         try {
             $article = Article::find($id);
             if (!empty($article)) {
-             return $this->returnData('article', $article);
+                return $this->returnData('article', $article);
             }
             return $this->returnError('404', 'not found');
         } catch (\Throwable $ex) {
@@ -130,10 +130,17 @@ class PendingArticleController extends Controller
     public function destroy($id)
     {
         try {
+            $user = auth()->user();
             $pendingArticle = PendingArticles::find($id);
-            $this->deleteImages($pendingArticle->images);
-            $pendingArticle->images()->detach();
-            $pendingArticle->delete();
+
+            if ($user->id === $pendingArticle->creator_id) {
+                $this->deleteImages($pendingArticle->images);
+                $pendingArticle->images()->detach();
+                $pendingArticle->delete();
+                return $this->returnSuccessMessage('deleted');
+            }
+
+            return $this->returnError('403', 'forbidden');
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }

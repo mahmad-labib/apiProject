@@ -9,19 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Http\Middleware\CheckUserToken;
 
 
 class AuthController extends Controller
 {
     use GeneralTrait;
+
+    // public function __construct()
+    // {
+    //     $this->middleware(Auth::guard('user-api'), ['except' => ['login']]);
+    // }
+
     public function login(Request $request)
     {
         try {
             $rules = [
                 "email" => "required",
                 "password" => "required"
-
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -33,7 +37,6 @@ class AuthController extends Controller
 
             //login
             $credentials = $request->only(['email', 'password']);
-
             $token = Auth::guard('user-api')->attempt($credentials);
 
             if (!$token)

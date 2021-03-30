@@ -19,7 +19,17 @@ class SubmitToPendingArticleController extends Controller
      */
     public function index()
     {
-        // 
+        try {
+            $user = auth()->user();
+            $articles = PendingArticles::where('creator_id', $user->id)->get();
+            foreach ($articles as $article) {
+                $content = html_entity_decode($article->content);
+                $article->content = $content;
+            }
+            return $this->returnData('articles', $articles);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
@@ -86,8 +96,14 @@ class SubmitToPendingArticleController extends Controller
      */
     public function show($id)
     {
-        $article = PendingArticles::find($id);
-        echo (html_entity_decode($article->content));
+        try {
+            $article = PendingArticles::find($id);
+            $content = html_entity_decode($article->content);
+            $article->content = $content;
+            return $this->returnData('article', $content);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
     }
 
     /**
