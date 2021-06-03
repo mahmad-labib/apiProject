@@ -16,6 +16,7 @@ trait GeneralTrait
         }
         $children = [];
         foreach ($userSections as $section) {
+            array_push($children, $section->name);
             $sectionChildren = $section->children;
             foreach ($sectionChildren as $child) {
                 array_push($children, $child->name);
@@ -24,7 +25,8 @@ trait GeneralTrait
         return  in_array($requestData->name, $children);
     }
 
-    public function checkUser($user, $id){
+    public function checkUser($user, $id)
+    {
         if ($user->id === (int)$id) {
             return true;
         }
@@ -38,6 +40,11 @@ trait GeneralTrait
 
     public function returnError($errNum, $msg)
     {
+        // return [
+        //     'status' => false,
+        //     'errNum' => $errNum,
+        //     'msg' => $msg
+        // ];
         return response()->json([
             'status' => false,
             'errNum' => $errNum,
@@ -70,7 +77,7 @@ trait GeneralTrait
             $image_path =  public_path() . '/storage/' . $image->path;
             if (File::exists($image_path))
                 unlink($image_path);
-                $image->delete();
+            $image->delete();
         }
     }
 
@@ -83,11 +90,11 @@ trait GeneralTrait
             $checkReplacedImg = strpos($data->content, $image->path);
             if (!$checkReplacedImg) {
                 $image_path =  public_path() . '/storage/' . $image->path;
-                if (File::exists($image_path)){
+                if (File::exists($image_path)) {
                     unlink($image_path);
                     $oldContent->images()->detach($image->id);
                     $image->delete();
-                } 
+                }
             }
         }
         return $data;
@@ -95,17 +102,21 @@ trait GeneralTrait
 
     public function createArticleWithImages($content, $images)
     {
-        $data =  new class{};
+        $data =  new class
+        {
+        };
         $imagesPath = [];
         foreach ($images as $image) {
             $name = $image->getClientOriginalName();
-            $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
-            $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
-            $image = new Image;
-            $image->path = $path;
-            array_push($imagesPath, $image);
-            $url = Storage::url($path);
-            $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
+            if (str_contains($content, $name)) {
+                $imageSaveName = time() . '.' . bcrypt($name) . '.' . $image->getClientOriginalExtension();
+                $path = $image->storeAs('uploads/avatar/' . Auth()->id(), $imageSaveName, 'public');
+                $image = new Image;
+                $image->path = $path;
+                array_push($imagesPath, $image);
+                $url = Storage::url($path);
+                $content = str_replace($name, 'http://' . $_SERVER['SERVER_NAME'] . $url, $content);
+            }
         }
         $data->imagesPath = $imagesPath;
         $data->content = $content;

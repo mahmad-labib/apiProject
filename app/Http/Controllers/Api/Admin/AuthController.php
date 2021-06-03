@@ -43,7 +43,7 @@ class AuthController extends Controller
                 return $this->returnError('E001', 'بيانات الدخول غير صحيحة');
 
             $user = Auth::guard('user-api')->user();
-            // $user->roles->name;
+            $user->roles;
             $user->api_token = $token;
             //return token
             return $this->returnData('user', $user);
@@ -60,11 +60,11 @@ class AuthController extends Controller
 
                 JWTAuth::setToken(substr($token, 7))->invalidate(); //logout
             } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-                return  $this->returnError('', 'some thing went wrongs');
+                return  $this->returnError(500, 'something went wrongs');
             }
             return $this->returnSuccessMessage('Logged out successfully');
         } else {
-            $this->returnError('', 'some thing went wrongs');
+            $this->returnError(500, 'something went wrongs');
         }
     }
 }

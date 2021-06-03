@@ -14,14 +14,15 @@ class CheckPermission
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, Closure $next, $role = null , $permission = null)
+    public function handle($request, Closure $next, ...$parm1 )
     {
-        if (!$request->user()->hasRole($role)) {
+        // dd($request->user()->can(...$parm1));
+        // if (!$request->user()->hasRole(...$parm1)) {
 
-            abort(404);
-        }
+        //     abort(404);
+        // }
 
-        if ($permission !== null && !$request->user()->can($permission)) {
+        if ($parm1 !== null && !$request->user()->can(...$parm1)) {
 
             abort(404);
         }

@@ -41,12 +41,18 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
+        // $imgarr = [];
+        // foreach ($request->images as $image) {
+        //     array_push($imgarr, $image->getClientOriginalExtension());
+        // };
+        // return response($imgarr);
         try {
             $this->validate($request, [
                 'title' => 'required',
-                'content' => 'mimes:txt|required',
+                'content' => 'required',
                 'section_id' => 'required',
-                'images' => 'required'
+                'images' => 'required',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif'
             ]);
             $user = auth()->user();
             $article = new Article;
@@ -57,7 +63,7 @@ class ArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection || $user->can('admin')) {
-                $content = file_get_contents($request->content);
+                $content = $request->content;
                 $images = $request->file('images');
                 $data = $this->createArticleWithImages($content, $images);
                 $article->title = $request->title;

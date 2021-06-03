@@ -62,15 +62,14 @@ class SubmitToPendingArticleController extends Controller
             $userSections = $user->sections;
             $article = new PendingArticles;
             $checkSection = $this->checkChildren($userSections, $requestSection);
-            $checkName = Article::where('title', $request->title);
-            if (!$checkName) {
-                return $this->returnError('409', 'this title does exist');
-            }
+            // $checkName = Article::where('title', $request->title);
+            // if (!$checkName) {
+            //     return $this->returnError('409', 'this title does exist');
+            // }
             if ($checkSection) {
                 $content = file_get_contents($request->content);
                 $images = $request->file('images');
                 $data = $this->createArticleWithImages($content, $images);
-
                 $article->content = htmlentities($data->content);
                 $article->title = $request->title;
                 $article->section_id = $request->section_id;

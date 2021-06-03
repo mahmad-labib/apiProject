@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\UsersController;
 use App\Http\Controllers\Api\User\SubmitToPendingArticleController;
 use App\Http\Controllers\Api\User\PendingArticleController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\Public\GetArticle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::group([], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('signup', [UserController::class, 'signUp']);
+    Route::resource('article', GetArticle::class);
 });
 
 Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' => 'admin'], function () {
@@ -40,7 +42,7 @@ Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' =
 
 Route::group(['prefix' => 'dashboard', 'middleware' => 'checkUserToken'], function () {
     Route::resource('user', UserController::class);
-    Route::resource('articles', ArticleController::class)->middleware('permission:publisher,admin');
-    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:writer,admin');
-    Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve,admin');
+    Route::resource('articles', ArticleController::class)->middleware('permission:publisher, admin');
+    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:admin, writer');
+    Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve, admin');
 });
