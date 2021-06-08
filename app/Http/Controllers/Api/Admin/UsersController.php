@@ -20,12 +20,24 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         try {
-            $users = User::paginate($request->paginate)->except(auth()->user()->id);
+            $users = User::paginate(10, ['*'], 'page', $request->header('paginate'))->except(auth()->user()->id);
+            // $users = User::paginate(15)->lastPage()->except(auth()->user()->id);
+            // $pages = $users->lastPage();
             foreach ($users as $user) {
                 $user->roles;
                 $user->sections;
             }
+            // $users->pages = $pages;
             return $this->returnData('users', $users);
+        } catch (\Exception $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
+    }
+
+    public function usersPages(){
+        try {
+            $pages = User::paginate(10)->lastPage();
+            return $this->returnData('pages', $pages);
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }
@@ -124,7 +136,7 @@ class UsersController extends Controller
     {
         try {
             $user =  User::where('id', $id)->first();
-            
+
             if (!$user) {
                 return $this->returnError(errNum: '404', msg: 'user dont exist');
             }
