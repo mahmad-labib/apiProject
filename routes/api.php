@@ -36,6 +36,7 @@ Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' =
     Route::resource('roles', RolesController::class);
     Route::resource('users', UsersController::class);
     Route::get('usersPages', [UsersController::class, 'usersPages']);
+    Route::post('usersSearch', [UsersController::class, 'search']);
     Route::resource('sections', SectionsController::class);
     Route::resource('permissions', PermissionsController::class);
 });

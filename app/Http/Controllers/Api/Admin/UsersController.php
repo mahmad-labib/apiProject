@@ -9,6 +9,8 @@ use App\Http\Traits\GeneralTrait;
 use App\Models\Role;
 use App\Models\Section;
 
+use function PHPUnit\Framework\isNull;
+
 class UsersController extends Controller
 {
     use GeneralTrait;
@@ -34,10 +36,61 @@ class UsersController extends Controller
         }
     }
 
-    public function usersPages(){
+    public function usersPages()
+    {
         try {
             $pages = User::paginate(10)->lastPage();
             return $this->returnData('pages', $pages);
+        } catch (\Exception $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $list = [];
+            if (!empty($request->name)) {
+                $users = User::where('name', 'LIKE', "%{$request->name}%")->get();
+                foreach ($users as $user) {
+                    // $request->role ? $role = $user->roles->where('name', $request->role)->count() : $role = 0;
+                    // $request->section ? $section = $user->sections->where('name', $request->section)->count() : $section = 0;
+                    // if (
+                    //     $role > 0 &&
+                    //     $section > 0
+                    // ) {
+                    //     $user->roles;
+                    //     $user->sections;
+                    //     array_push($list, $user);
+                    // }
+                    $user->whereHas('roles', function ($query) use ($request) {
+                        return $request->role ?
+                            $query->where('name', 'LIKE', "%{$request->role}%") : '';
+                    })->whereHas('sections', function ($query) use ($request) {
+                        return $request->section ?
+                            $query->where('name', 'LIKE', "%{$request->section}%") : '';
+                    })->get();
+                    $user->roles;
+                    $user->sections;
+                    array_push($list, $user);
+                }
+                return $this->returnData('users', $list);
+            } else {
+                $users = User::whereHas('roles', function ($query) use ($request) {
+                    return $request->role ?
+                        $query->where('name', 'LIKE', "%{$request->role}%") : '';
+                })->whereHas('sections', function ($query) use ($request) {
+                    return $request->section ?
+                        $query->where('name', 'LIKE', "%{$request->section}%") : '';
+                })->get();
+                foreach ($users as $user) {
+                    $user->roles;
+                    $user->sections;
+                    array_push($list, $user);
+                }
+                return $this->returnData('users', $users);
+            }
+            // $users = User::where('name',$request->name)
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
         }
