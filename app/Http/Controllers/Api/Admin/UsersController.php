@@ -48,52 +48,31 @@ class UsersController extends Controller
 
     public function search(Request $request)
     {
-        try {
-            $list = [];
-            if (!empty($request->name)) {
-                $users = User::where('name', 'LIKE', "%{$request->name}%")->get();
-                foreach ($users as $user) {
-                    // $request->role ? $role = $user->roles->where('name', $request->role)->count() : $role = 0;
-                    // $request->section ? $section = $user->sections->where('name', $request->section)->count() : $section = 0;
-                    // if (
-                    //     $role > 0 &&
-                    //     $section > 0
-                    // ) {
-                    //     $user->roles;
-                    //     $user->sections;
-                    //     array_push($list, $user);
-                    // }
-                    $user->whereHas('roles', function ($query) use ($request) {
-                        return $request->role ?
-                            $query->where('name', 'LIKE', "%{$request->role}%") : '';
-                    })->whereHas('sections', function ($query) use ($request) {
-                        return $request->section ?
-                            $query->where('name', 'LIKE', "%{$request->section}%") : '';
-                    })->get();
-                    $user->roles;
-                    $user->sections;
-                    array_push($list, $user);
+        // $users = User::where('name', 'LIKE', "%{$request->name}%")->paginate(15, ['*'], 'page', $request->paginate)->except(auth()->user()->id);
+        $users = User::where('name', 'LIKE', "%{$request->name}%")->get();
+        if (!empty($request->role)) {
+            foreach ($users as $k => $user) {
+                $checkRole =  $user->roles()->where('name', $request->role)->exists();
+                if ($checkRole == false) {
+                    unset($users[$k]);
                 }
-                return $this->returnData('users', $list);
-            } else {
-                $users = User::whereHas('roles', function ($query) use ($request) {
-                    return $request->role ?
-                        $query->where('name', 'LIKE', "%{$request->role}%") : '';
-                })->whereHas('sections', function ($query) use ($request) {
-                    return $request->section ?
-                        $query->where('name', 'LIKE', "%{$request->section}%") : '';
-                })->get();
-                foreach ($users as $user) {
-                    $user->roles;
-                    $user->sections;
-                    array_push($list, $user);
-                }
-                return $this->returnData('users', $users);
             }
-            // $users = User::where('name',$request->name)
-        } catch (\Exception $ex) {
-            return $this->returnError($ex->getCode(), $ex->getMessage());
-        }
+        };
+        if (!empty($request->section)) {
+            foreach ($users as $k => $user) {
+                $checkSection =  $user->sections()->where('name', $request->section)->exists();
+                if ($checkSection == false) {
+                    unset($users[$k]);
+                }
+            };
+        };
+
+        foreach ($users as $k => $user) {
+            $user->roles;
+            $user->sections;
+        };
+
+        return $this->returnData('users', $users);
     }
 
     /**
@@ -159,20 +138,20 @@ class UsersController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $this->validate($request, [
-                'name' => 'required',
-                'email' => 'required',
-                'role' => 'required'
-            ]);
-
             $input = $request->all();
-            $role = Role::find($request->role);
             $user = User::find($id);
             if (!$user) {
                 return $this->returnError(errNum: '404', msg: 'user dont exist');
             };
             $user->update($input);
-            $user->roles()->sync($role);
+            $roles = [];
+            foreach ($request->roles as $roleId) {
+                $role =  Role::find($roleId);
+                if ($role) {
+                    array_push($roles, $role->id);
+                }
+            }
+            $user->roles()->sync($roles);
             return $this->returnSuccessMessage(msg: 'user updated successfully');
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

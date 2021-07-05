@@ -8,6 +8,17 @@ use Illuminate\Support\Facades\Storage;
 
 trait GeneralTrait
 {
+    public function searchPivot($pivot, $arr, $request)
+    {
+        $list = [];
+        foreach ($arr as $el) {
+            $el->whereHas($pivot, function ($query) use ($request) {
+                return $request->role ?
+                    $query->where('name', 'LIKE', "%{$request->role}%") : '';
+            })->get();
+            array_push($list, $el);
+        };
+    }
 
     public function checkChildren($userSections, $requestData)
     {
