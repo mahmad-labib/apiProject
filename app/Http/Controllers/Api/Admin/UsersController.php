@@ -22,7 +22,7 @@ class UsersController extends Controller
     public function index(Request $request)
     {
         try {
-            $users = User::paginate(10, ['*'], 'page', $request->header('paginate'))->except(auth()->user()->id);
+            $users = User::paginate(10, ['*'], 'page', $request->header('paginate'));
             // $users = User::paginate(15)->lastPage()->except(auth()->user()->id);
             // $pages = $users->lastPage();
             foreach ($users as $user) {
@@ -49,7 +49,9 @@ class UsersController extends Controller
     public function search(Request $request)
     {
         // $users = User::where('name', 'LIKE', "%{$request->name}%")->paginate(15, ['*'], 'page', $request->paginate)->except(auth()->user()->id);
-        $users = User::where('name', 'LIKE', "%{$request->name}%")->get();
+
+        $users = User::where('name', 'LIKE', "%{$request->name}%")->paginate(15, ['*'], 'page', $request->paginate);
+
         if (!empty($request->role)) {
             foreach ($users as $k => $user) {
                 $checkRole =  $user->roles()->where('name', $request->role)->exists();
@@ -72,6 +74,7 @@ class UsersController extends Controller
             $user->sections;
         };
 
+        // $users->pages = $pages;
         return $this->returnData('users', $users);
     }
 
@@ -137,6 +140,7 @@ class UsersController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // return $this->returnSuccessMessage(msg: $request->sections);
         try {
             $input = $request->all();
             $user = User::find($id);
@@ -144,14 +148,39 @@ class UsersController extends Controller
                 return $this->returnError(errNum: '404', msg: 'user dont exist');
             };
             $user->update($input);
-            $roles = [];
-            foreach ($request->roles as $roleId) {
-                $role =  Role::find($roleId);
-                if ($role) {
-                    array_push($roles, $role->id);
+            if ($request->deletedRoles) {
+                foreach ($request->deletedRoles as $roleId) {
+                    $role =  Role::find($roleId);
+                    if ($role) {
+                        $user->roles()->detach($role);
+                    }
                 }
             }
-            $user->roles()->sync($roles);
+            if ($request->deletedSections) {
+                foreach ($request->deletedSections as $sectionId) {
+                    $section =  Section::find($sectionId);
+                    if ($section) {
+                        $user->sections()->detach($section);
+                    }
+                }
+            }
+            if ($request->roles) {
+                foreach ($request->roles as $roleId) {
+                    $role =  Role::find($roleId);
+                    if ($role) {
+                        $user->roles()->attach($role);
+                    }
+                }
+            }
+            if ($request->sections) {
+                foreach ($request->sections as $sectionId) {
+                    $section =  Section::find($sectionId);
+                    if ($section) {
+                        $user->sections()->attach($section);
+                    }
+                }
+            }
+
             return $this->returnSuccessMessage(msg: 'user updated successfully');
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

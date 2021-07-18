@@ -18,7 +18,13 @@ class SectionsController extends Controller
     public function index()
     {
         try {
-            $sections = Section::All();
+            $sections = Section::where('parent_id', null)->get();
+            foreach ($sections as $section) {
+                $section->children;
+                foreach ($section->children as $section) {
+                    $section->children;
+                }
+            }
             return $this->returnData('sections', $sections);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
