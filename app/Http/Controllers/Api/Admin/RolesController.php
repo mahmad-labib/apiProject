@@ -48,6 +48,7 @@ class RolesController extends Controller
     public function store(Request $request)
     {
         try {
+            $perm = $request->permissions;
             $role = new Role;
             $roleCheck = Role::where('name', $request->name)->first();
             if (!empty($roleCheck)) {
@@ -55,6 +56,7 @@ class RolesController extends Controller
             }
             $role->name = $request->name;
             $role->save();
+            $role->permissions()->sync($perm);
             return $this->returnSuccessMessage(msg: 'role saved succesfully');
         } catch (\Exception $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());
@@ -101,18 +103,20 @@ class RolesController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $this->validate($request, [
-                'name' => 'required',
-                'permissions' => 'required'
-            ]);
             $name = $request->name;
             $perm = $request->permissions;
+            $deletedPerm = $request->deletedPerm;
             $role = Role::where('id', $id)->first();
             if (!$role) {
                 return $this->returnError('404', 'role dont exist');
             }
             $role->update(['name' => $name]);
-            $role->permissions()->sync($perm);
+            if (!empty($deletedPerm)) {
+                $role->permissions()->detach($deletedPerm);
+            }
+            if (!empty($perm)) {
+                $role->permissions()->attach($perm);
+            }
             return $this->returnSuccessMessage(msg: 'role updated');
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

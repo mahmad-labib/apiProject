@@ -21,7 +21,7 @@ class CheckPermission
 
         //     abort(404);
         // }
-
+            
         if ($parm1 !== null && !$request->user()->can(...$parm1)) {
 
             abort(404);
