@@ -44,6 +44,7 @@ class AuthController extends Controller
 
             $user = Auth::guard('user-api')->user();
             $user->roles;
+            $user->sections;
             $user->api_token = $token;
             //return token
             return $this->returnData('user', $user);

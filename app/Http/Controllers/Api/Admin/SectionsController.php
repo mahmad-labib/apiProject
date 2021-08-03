@@ -53,18 +53,20 @@ class SectionsController extends Controller
             $section = new Section();
             $this->validate($request, [
                 'name' => 'required',
-                'parent_id' => 'required',
+                'parent_id' => '',
             ]);
             $secNameCheck = Section::where('name', $request->name)->first();
             if ($secNameCheck) {
                 return $this->returnError('409', 'section name already exists');
             }
             $section->name = $request->name;
-            $section->parent_id = $request->parent_id;
+            if (!empty($request->parent_id)) {
+                $section->parent_id = $request->parent_id;
+            }
             $section->save();
             return $this->returnSuccessMessage(msg: 'data saved');
         } catch (\Throwable $ex) {
-            return $this->returnError($ex->getCode(), $ex->getMessage());
+            return $this->returnError($ex->getCode(), 'somthing went wrong');
         }
     }
 
