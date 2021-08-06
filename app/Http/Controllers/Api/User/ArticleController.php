@@ -52,7 +52,9 @@ class ArticleController extends Controller
                 'content' => 'required',
                 'section_id' => 'required',
                 'images' => 'required',
-                'images.*' => 'image|mimes:jpeg,png,jpg,gif'
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif',
+                'coverImage' => 'required',
+                'coverImage.*' => 'image|mimes:jpeg,png,jpg,gif',
             ]);
             $user = auth()->user();
             $article = new Article;
