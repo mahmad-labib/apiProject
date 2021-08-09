@@ -94,7 +94,7 @@ trait GeneralTrait
 
     public function replaceArticleImages($oldContent, $request)
     {
-        $content = file_get_contents($request->content);
+        $content = $request->content;
         $data = $this->createArticleWithImages($content, $request->images);
         $oldImages = $oldContent->images;
         foreach ($oldImages as $image) {

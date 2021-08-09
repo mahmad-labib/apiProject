@@ -128,16 +128,20 @@ class SubmitToPendingArticleController extends Controller
         try {
             $this->validate($request, [
                 'title' => 'required',
-                'content' => 'mimes:txt|required',
+                // 'content' => 'mimes:txt|required',
                 'section_id' => 'required',
-                'images' => 'required'
             ]);
             $user = auth()->user();
             $requestSection = Section::find($request->section_id);
             $checkSection = $this->checkChildren($user->sections, $requestSection);
             if ($checkSection) {
                 $article = PendingArticles::find($id);
-                $data = $this->replaceArticleImages($article, $request);
+                if (!empty($request->images)) {
+                    $data = $this->replaceArticleImages($article, $request);
+                } else {
+                    $data =  new class{};
+                    $data->content = $request->content;
+                }
                 $article->content = htmlentities($data->content);
                 $article->title = $request->title;
                 $article->section_id = $request->section_id;
