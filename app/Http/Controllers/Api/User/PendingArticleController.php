@@ -24,8 +24,7 @@ class PendingArticleController extends Controller
             foreach ($articles as $article) {
                 $article->content = html_entity_decode($article->content);
             }
-            dd($articles);
-            // dd($this->returnData('articles', $articles));
+            // dd($articles);
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

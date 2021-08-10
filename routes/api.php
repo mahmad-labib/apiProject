@@ -44,7 +44,7 @@ Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' =
 
 Route::group(['prefix' => 'dashboard', 'middleware' => 'checkUserToken'], function () {
     Route::resource('user', UserController::class);
-    Route::resource('articles', ArticleController::class)->middleware('permission:publisher, admin');
-    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:admin, writer');
-    Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve, admin');
+    Route::resource('articles', ArticleController::class)->middleware('permission:publisher,admin');
+    Route::resource('submitToPendingArticles', SubmitToPendingArticleController::class)->middleware('permission:admin,writer');
+    Route::resource('pendingArticle', PendingArticleController::class)->middleware('permission:approve,admin');
 });
