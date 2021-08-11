@@ -48,34 +48,27 @@ class UsersController extends Controller
 
     public function search(Request $request)
     {
-        // $users = User::where('name', 'LIKE', "%{$request->name}%")->paginate(15, ['*'], 'page', $request->paginate)->except(auth()->user()->id);
 
-        $users = User::where('name', 'LIKE', "%{$request->name}%")->paginate(15, ['*'], 'page', $request->paginate);
-
-        if (!empty($request->role)) {
-            foreach ($users as $k => $user) {
-                $checkRole =  $user->roles()->where('name', $request->role)->exists();
-                if ($checkRole == false) {
-                    unset($users[$k]);
-                }
+        $users = User::where('name', 'LIKE', "%{$request->name}%")->where(function ($query) use ($request) {
+            if (!empty($request->role)) {
+                $query->whereHas('roles', function ($query) use ($request) {
+                    $query->where('name', $request->role);
+                });
             }
-        };
-        if (!empty($request->section)) {
-            foreach ($users as $k => $user) {
-                $checkSection =  $user->sections()->where('name', $request->section)->exists();
-                if ($checkSection == false) {
-                    unset($users[$k]);
-                }
-            };
-        };
+            if (!empty($request->section)) {
+                $query->whereHas('sections', function ($query) use ($request) {
+                    $query->where('name', $request->section);
+                });
+            }
+        })->paginate(15, ['*'], 'page', $request->paginate);
 
         foreach ($users as $k => $user) {
             $user->roles;
             $user->sections;
         };
 
-        // $users->pages = $pages;
         return $this->returnData('users', $users);
+       
     }
 
     /**
