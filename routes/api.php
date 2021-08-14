@@ -29,7 +29,7 @@ Route::group([], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('signup', [UserController::class, 'signUp']);
-    Route::resource('article', GetArticle::class);
+    Route::resource('publicArticles', GetArticle::class);
 });
 
 Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' => 'admin'], function () {

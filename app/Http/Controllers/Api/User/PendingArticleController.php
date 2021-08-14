@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\User;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use App\Http\Traits\GeneralTrait;
@@ -25,6 +26,7 @@ class PendingArticleController extends Controller
             foreach ($articles as $article) {
                 $article->content = html_entity_decode($article->content);
                 $article->section = Section::where('id', $article->section_id)->get();
+                $article->user = User::select('name', 'id', 'speciality')->where('id', $article->creator_id)->first();
             }
             // dd($articles);
             return $this->returnData('articles', $articles);

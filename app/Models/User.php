@@ -34,6 +34,11 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Section::class, 'users_sections');
     }
+    public function articles()
+    {
+
+        return $this->belongsToMany(Article::class, 'users_articles');
+    }
 
     protected $fillable = [
         'name',

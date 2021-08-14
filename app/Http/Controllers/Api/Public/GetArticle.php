@@ -23,4 +23,14 @@ class GetArticle extends Controller
             return $this->returnError('404', 'not found');
         }
     }
+    public function index()
+    {
+        try {
+            $user = auth()->user();
+            $articles = $user->articles;
+            return $this->returnData('articles', $articles);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
+    }
 }
