@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
+use Illuminate\Http\Request;
 
 class GetArticle extends Controller
 {
@@ -28,6 +29,22 @@ class GetArticle extends Controller
         try {
             $user = auth()->user();
             $articles = $user->articles;
+            return $this->returnData('articles', $articles);
+        } catch (\Throwable $ex) {
+            return $this->returnError($ex->getCode(), $ex->getMessage());
+        }
+    }
+    public function news(Request $request)
+    {
+        try {
+            $articles = Article::query()
+                ->with(array('creator' => function ($query) {
+                    $query->select('id', 'name', 'speciality');
+                }))
+                ->with(array('images' => function ($query) {
+                    $query->select('path');
+                }))
+                ->paginate(10, ['*'], 'page', $request->header('paginate'));
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

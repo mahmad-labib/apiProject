@@ -62,8 +62,8 @@ class ArticleController extends Controller
                 return $this->returnError('404', 'somthing went wrong');
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
-            if ($checkSection || $user->can('admin')) {
-                $content = $request->content;
+            if ($checkSection) {
+                $content = file_get_contents($request->content);
                 $images = $request->file('images');
                 $data = $this->createArticleWithImages($content, $images);
                 $article->title = $request->title;
