@@ -14,7 +14,7 @@ class Article extends Model
     public function creator()
     {
 
-        return $this->belongsToMany(User::class, 'users_articles');
+        return $this->belongsToMany(User::class, 'users_articles')->select(['id', 'name', 'speciality']);
     }
 
     public function section()
@@ -28,5 +28,4 @@ class Article extends Model
 
         return $this->belongsToMany(Image::class, 'articles_images');
     }
-
 }

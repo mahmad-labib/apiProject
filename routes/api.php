@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\User\SubmitToPendingArticleController;
 use App\Http\Controllers\Api\User\PendingArticleController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\Public\GetArticle;
+use App\Http\Controllers\Api\Public\publicData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,7 @@ Route::group([], function () {
     Route::post('signup', [UserController::class, 'signUp']);
     Route::resource('publicArticles', GetArticle::class);
     Route::get('news', [GetArticle::class, 'news']);
+    Route::get('creator/{id}', [publicData::class, 'creator']);
 });
 
 Route::group(['middleware' => ['checkUserToken', 'permission:admin'], 'prefix' => 'admin'], function () {

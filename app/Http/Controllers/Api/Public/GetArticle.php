@@ -14,6 +14,8 @@ class GetArticle extends Controller
     {
         try {
             $data = Article::find($id);
+            $data->creator;
+            $data->section;
             $content = html_entity_decode($data->content);
             $data->content = $content;
             if (!empty($data)) {
