@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\GeneralTrait;
 use App\Models\Article;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class GetArticle extends Controller
@@ -31,6 +32,11 @@ class GetArticle extends Controller
         try {
             $user = auth()->user();
             $articles = $user->articles;
+            foreach ($articles as $article) {
+                $content = html_entity_decode($article->content);
+                $article->content = $content;
+                $article->images->first();
+            };
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

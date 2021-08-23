@@ -46,6 +46,7 @@ class ArticleController extends Controller
         //     array_push($imgarr, $image->getClientOriginalExtension());
         // };
         // return response($imgarr);
+        // return $this->returnData('data', $request->all());
         try {
             $this->validate($request, [
                 'title' => 'required',
@@ -63,7 +64,7 @@ class ArticleController extends Controller
             }
             $checkSection = $this->checkChildren($userSections, $requestSection);
             if ($checkSection) {
-                $content = file_get_contents($request->content);
+                $content = $request->content;
                 $images = $request->file('images');
                 $data = $this->createArticleWithImages($content, $images);
                 $article->title = $request->title;
