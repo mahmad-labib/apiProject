@@ -27,15 +27,20 @@ class GetArticle extends Controller
             return $this->returnError('404', 'not found');
         }
     }
-    public function index()
+    public function index(Request $request)
     {
         try {
             $user = auth()->user();
-            $articles = $user->articles;
+            $articles =  User::where('id', $user->id)
+                ->with(array('articles' => function ($query) {
+                    $query->select('id', 'title')->with(array('images' => function ($query) {
+                        $query->select('id', 'path');
+                    }));
+                }))->paginate(5, ['*'], 'page', $request->paginate);
+
             foreach ($articles as $article) {
                 $content = html_entity_decode($article->content);
                 $article->content = $content;
-                $article->images->first();
             };
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {

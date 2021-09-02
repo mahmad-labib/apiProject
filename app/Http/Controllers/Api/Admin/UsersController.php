@@ -48,7 +48,6 @@ class UsersController extends Controller
 
     public function search(Request $request)
     {
-
         $users = User::where('name', 'LIKE', "%{$request->name}%")->where(function ($query) use ($request) {
             if (!empty($request->role)) {
                 $query->whereHas('roles', function ($query) use ($request) {
@@ -60,7 +59,7 @@ class UsersController extends Controller
                     $query->where('name', $request->section);
                 });
             }
-        })->paginate(15, ['*'], 'page', $request->paginate);
+        })->paginate(5, ['*'], 'page', $request->paginate);
 
         foreach ($users as $k => $user) {
             $user->roles;
@@ -68,7 +67,6 @@ class UsersController extends Controller
         };
 
         return $this->returnData('users', $users);
-       
     }
 
     /**
