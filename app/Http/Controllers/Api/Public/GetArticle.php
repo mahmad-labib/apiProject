@@ -30,18 +30,12 @@ class GetArticle extends Controller
     public function index(Request $request)
     {
         try {
-            $user = auth()->user();
-            $articles =  User::where('id', $user->id)
-                ->with(array('articles' => function ($query) {
-                    $query->select('id', 'title')->with(array('images' => function ($query) {
-                        $query->select('id', 'path');
-                    }));
-                }))->paginate(5, ['*'], 'page', $request->paginate);
-
-            foreach ($articles as $article) {
-                $content = html_entity_decode($article->content);
-                $article->content = $content;
-            };
+            $articles = Article::query()->select('id', 'title')->with(array('creator' => function ($query) {
+                $query->select('id', 'name', 'speciality')->where('id',  1);
+            }))
+                ->with(array('images' => function ($query) {
+                    $query->select('path');
+                }))->paginate(4, ['*'], 'page', $request->header('paginate'));
             return $this->returnData('articles', $articles);
         } catch (\Throwable $ex) {
             return $this->returnError($ex->getCode(), $ex->getMessage());

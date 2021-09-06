@@ -28,4 +28,9 @@ class Article extends Model
 
         return $this->belongsToMany(Image::class, 'articles_images');
     }
+    public function cover()
+    {
+
+        return $this->belongsToMany(Image::class, 'articles_images')->select(array('id', 'path'))->first();
+    }
 }
