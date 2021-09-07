@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group([], function () {
+    Route::get('valid', [AuthController::class, 'valid']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('signup', [UserController::class, 'signUp']);

@@ -68,4 +68,8 @@ class AuthController extends Controller
             $this->returnError(500, 'something went wrongs');
         }
     }
+
+    public function valid() {
+        return response()->json([ 'valid' => auth()->check() ]);
+    }
 }
